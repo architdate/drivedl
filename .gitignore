@@ -1,0 +1,6 @@
+buffer/*
+!buffer/README.md
+__pycache__/
+
+credentials.json
+token.pickle
