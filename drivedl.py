@@ -62,5 +62,10 @@ if __name__ == '__main__':
                 dest = os.path.join(destination, os.path.join(*path))
                 file_dest.append((service, f, dest))
 
-    p = Pool(PROCESS_COUNT)
-    p.map(util.download_helper, file_dest)
+    try:
+        p = Pool(PROCESS_COUNT)
+        p.map(util.download_helper, file_dest)
+    except ImportError:
+        # Multiprocessing is not supported (example: Android Devices)
+        for fd in file_dest:
+            util.download_helper(fd)
