@@ -1,5 +1,5 @@
 from __future__ import print_function
-import pickle, util, sys
+import pickle, util, sys, tqdm, time
 import os.path
 from multiprocessing import Pool
 from googleapiclient.discovery import build
@@ -36,6 +36,10 @@ def get_service():
     service = build('drive', 'v3', credentials=creds)
     return service
 
+def download_helper(args):
+    util.download(*args)
+    return args[1]['name']
+
 if __name__ == '__main__':
     # Set path
     abspath = os.path.abspath(__file__)
@@ -44,7 +48,6 @@ if __name__ == '__main__':
 
     service = get_service()
 
-    
     # File Listing
     if len(sys.argv) < 2:
         print("Usage: tdlist <folderid> <destination>")
@@ -61,11 +64,15 @@ if __name__ == '__main__':
             for f in files:
                 dest = os.path.join(destination, os.path.join(*path))
                 file_dest.append((service, f, dest))
-
     try:
         p = Pool(PROCESS_COUNT)
-        p.map(util.download_helper, file_dest)
+        pbar = tqdm.tqdm(p.imap(download_helper, file_dest), total=len(file_dest))
+        start = time.time()
+        for i in pbar:
+            pbar.write(f'Finished downloading {i} ... \t[Time Elapsed: {str(int(time.time() - start))}s]')
+        p.close()
+        p.join()
     except ImportError:
         # Multiprocessing is not supported (example: Android Devices)
         for fd in file_dest:
-            util.download_helper(fd)
+            download_helper(fd)

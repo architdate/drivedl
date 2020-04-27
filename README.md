@@ -10,7 +10,7 @@ The tool requires the `'https://www.googleapis.com/auth/drive'` scope as of now.
 - Save the `credentials.json` file in the same directory as `drivedl.py`
 - Install the Drive API for python by running the following command:
 ```bash
-$ pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+$ pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib tqdm
 ```
 
 ## Usage:

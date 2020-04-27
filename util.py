@@ -2,9 +2,10 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseDownload
-import io, os, shutil, uuid
+import io, os, shutil, uuid, sys
 
 FOLDER = 'application/vnd.google-apps.folder'
+CHUNK_SIZE = 20 * 1024 * 1024 # 20MB chunks
 
 def list_td(service):
     # Call the Drive v3 API
@@ -43,7 +44,7 @@ def walk(service, top='root', by_name=False):
         if top['mimeType'] != FOLDER:
             raise ValueError('not a folder: %r' % top)
     stack = [((top['name'],), top)]
-    print(stack)
+    print(f"Indexing: {top['name']}\nFolder ID: {top['id']}\nDrive ID: {top['driveId']}\n")
     while stack:
         path, top = stack.pop()
         dirs, files = is_file = [], []
@@ -53,16 +54,12 @@ def walk(service, top='root', by_name=False):
         if dirs:
             stack.extend((path + (d['name'],), d) for d in reversed(dirs))
 
-def download_helper(args):
-    download(*args)
-
 def download(service, file, destination):
     # file is a dictionary with file id as well as name
     dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True)
     rand_id = str(uuid.uuid4())
     fh = io.FileIO(os.path.join('buffer', rand_id), 'wb')
-    downloader = MediaIoBaseDownload(fh, dlfile)
-    print(f"Downloading {file['name']} ...")
+    downloader = MediaIoBaseDownload(fh, dlfile, chunksize=CHUNK_SIZE)
     done = False
     while done is False:
         try:
