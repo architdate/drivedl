@@ -2,7 +2,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseDownload
-import io, os, shutil, uuid, sys
+import io, os, shutil, uuid, sys, json
 
 FOLDER = 'application/vnd.google-apps.folder'
 CHUNK_SIZE = 20 * 1024 * 1024 # 20MB chunks
@@ -79,6 +79,7 @@ def download(service, file, destination):
 def get_folder_id(link):
     # function to isolate folder id
     if 'drive.google.com' in link:
+        link = link.split('/view')[0].split('/edit')[0] # extensions to file names
         link = link.rsplit('/', 1)[-1] # final backslash
         link = link.split('?usp')[0] # ignore usp=sharing and usp=edit
         # open?id=
@@ -86,3 +87,14 @@ def get_folder_id(link):
         return link
     else:
         return link
+
+def save_default_path(path):
+    if os.path.isfile('config.json'):
+        with open('config.json', 'r') as f:
+            config = json.load(f)
+        config['default_path'] = path
+    else:
+        config = {}
+        config['default_path'] = path
+    with open('config.json', 'w') as f:
+        f.write(json.dumps(config, indent= 4))

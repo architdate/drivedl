@@ -1,5 +1,5 @@
 from __future__ import print_function
-import pickle, util, sys, tqdm, time
+import pickle, util, sys, tqdm, time, json
 import os.path
 from multiprocessing import Pool
 from googleapiclient.discovery import build
@@ -52,30 +52,41 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("Usage: tdlist <folderid> <destination>")
     else:
+        if sys.argv[1] == '--path':
+            util.save_default_path(sys.argv[2])
+            sys.exit(0)
         folderid = util.get_folder_id(sys.argv[1])
         if len(sys.argv) > 2:
             destination = sys.argv[2]
+        elif os.path.isfile('config.json'):
+            with open('config.json', 'r') as f:
+                config = json.load(f)
+            destination = config['default_path']
         else:
             destination = os.getcwd()
         
     file_dest = []
-    for kwargs in [{'top': folderid, 'by_name': False}]:
-        for path, root, dirs, files in util.walk(service, **kwargs):
-            for f in files:
-                dest = os.path.join(destination, os.path.join(*path))
-                file_dest.append((service, f, dest))
+    try:
+        for kwargs in [{'top': folderid, 'by_name': False}]:
+            for path, root, dirs, files in util.walk(service, **kwargs):
+                for f in files:
+                    dest = os.path.join(destination, os.path.join(*path))
+                    file_dest.append((service, f, dest))
+    except ValueError: # mimetype is not a folder
+        dlfile = service.files().get(fileId=folderid, supportsAllDrives=True).execute()
+        print(f"\nNot a valid folder ID. \nDownloading the file : {dlfile['name']}")
+        # Only use a single process for downloading 1 file
+        util.download(service, dlfile, destination)
+        sys.exit(0)
     try:
         p = Pool(PROCESS_COUNT)
         pbar = tqdm.tqdm(p.imap(download_helper, file_dest), total=len(file_dest))
         start = time.time()
         for i in pbar:
-            pbar.write(f'Finished downloading {i} ... \t[Time Elapsed: {str(int(time.time() - start))}s]')
+            pbar.write(f'Downloaded: [Time: {str(int(time.time() - start))}s]\t{i}')
         p.close()
         p.join()
     except ImportError:
         # Multiprocessing is not supported (example: Android Devices)
         for fd in file_dest:
             download_helper(fd)
-    except ValueError:
-        print("Not a valid folder ID. Exiting!")
-        sys.exit(1)

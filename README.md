@@ -26,5 +26,7 @@ Note that on the first run, you will have to authorize the scope of the applicat
 ## TODO:
 
 - [x] Add URL parsing
+- [x] Add default path
+- [x] Single file download support
 - [ ] Possible GUI?
 - [ ] Search functionality
