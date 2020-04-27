@@ -44,7 +44,7 @@ def walk(service, top='root', by_name=False):
         if top['mimeType'] != FOLDER:
             raise ValueError('not a folder: %r' % top)
     stack = [((top['name'],), top)]
-    print(f"Indexing: {top['name']}\nFolder ID: {top['id']}\nDrive ID: {top['driveId']}\n")
+    print(f"Indexing: {top['name']}\nFolder ID: {top['id']}\n")
     while stack:
         path, top = stack.pop()
         dirs, files = is_file = [], []
