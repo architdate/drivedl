@@ -10,23 +10,32 @@ The tool requires the `'https://www.googleapis.com/auth/drive'` scope as of now.
 - Save the `credentials.json` file in the same directory as `drivedl.py`
 - Install the Drive API for python by running the following command:
 ```bash
-$ pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib tqdm
+$ pip install --r requirements.txt
 ```
 
 ## Usage:
 
 ```bash
-$ python drivedl.py <folder_id> <path_to_save>
+$ python drivedl.py <folder_id / file_id> <path_to_save>
 ```
 
 It is as straightforward as that!
 
 Note that on the first run, you will have to authorize the scope of the application. This is pretty straightforward as well!
 
+## Default Path [Optional]
+
+```bash
+$ python drivedl.py --path <default_path>
+```
+
+This lets you specify a default path for your download location.
+
 ## TODO:
 
 - [x] Add URL parsing
 - [x] Add default path
 - [x] Single file download support
+- [x] Color support
 - [ ] Possible GUI?
 - [ ] Search functionality

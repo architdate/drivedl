@@ -2,6 +2,7 @@ from __future__ import print_function
 import pickle, util, sys, tqdm, time, json
 import os.path
 from multiprocessing import Pool
+from colorama import Fore, Style
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -83,7 +84,7 @@ if __name__ == '__main__':
         pbar = tqdm.tqdm(p.imap(download_helper, file_dest), total=len(file_dest))
         start = time.time()
         for i in pbar:
-            pbar.write(f'Downloaded: [Time: {str(int(time.time() - start))}s]\t{i}')
+            pbar.write(f'{Fore.GREEN}Downloaded:{Style.RESET_ALL} {Fore.BLUE}[Time: {str(int(time.time() - start))}s]{Style.RESET_ALL}\t{i}')
         p.close()
         p.join()
     except ImportError:
