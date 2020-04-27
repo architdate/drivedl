@@ -25,6 +25,6 @@ Note that on the first run, you will have to authorize the scope of the applicat
 
 ## TODO:
 
-- [ ] Add URL parsing
+- [x] Add URL parsing
 - [ ] Possible GUI?
 - [ ] Search functionality

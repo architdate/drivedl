@@ -75,4 +75,14 @@ def download(service, file, destination):
         except PermissionError:
             # wait out the file write before attempting to move
             pass
-    
+
+def get_folder_id(link):
+    # function to isolate folder id
+    if 'drive.google.com' in link:
+        link = link.rsplit('/', 1)[-1] # final backslash
+        link = link.split('?usp')[0] # ignore usp=sharing and usp=edit
+        # open?id=
+        link = link.rsplit('open?id=')[-1] # only take what is after open?id=
+        return link
+    else:
+        return link

@@ -52,7 +52,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("Usage: tdlist <folderid> <destination>")
     else:
-        folderid = sys.argv[1]
+        folderid = util.get_folder_id(sys.argv[1])
         if len(sys.argv) > 2:
             destination = sys.argv[2]
         else:
@@ -76,3 +76,6 @@ if __name__ == '__main__':
         # Multiprocessing is not supported (example: Android Devices)
         for fd in file_dest:
             download_helper(fd)
+    except ValueError:
+        print("Not a valid folder ID. Exiting!")
+        sys.exit(1)
