@@ -3,4 +3,5 @@ buffer/*
 __pycache__/
 
 credentials.json
+config.json
 token.pickle
