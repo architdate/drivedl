@@ -2,7 +2,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseDownload
-import io, os, shutil
+import io, os, shutil, uuid
 
 FOLDER = 'application/vnd.google-apps.folder'
 
@@ -59,7 +59,8 @@ def download_helper(args):
 def download(service, file, destination):
     # file is a dictionary with file id as well as name
     dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True)
-    fh = io.FileIO(os.path.join('buffer', file['name']), 'wb')
+    rand_id = str(uuid.uuid4())
+    fh = io.FileIO(os.path.join('buffer', rand_id), 'wb')
     downloader = MediaIoBaseDownload(fh, dlfile)
     print(f"Downloading {file['name']} ...")
     done = False
@@ -72,7 +73,7 @@ def download(service, file, destination):
     os.makedirs(destination, exist_ok=True)
     while True:
         try:
-            shutil.move(os.path.join('buffer', file['name']), os.path.join(destination, file['name']))
+            shutil.move(os.path.join('buffer', rand_id), os.path.join(destination, file['name']))
             break
         except PermissionError:
             # wait out the file write before attempting to move
