@@ -23,9 +23,9 @@ def add_account():
 
 def migrate():
     # Migrate token.pickle file to tokens folder
+    os.makedirs('tokens', exist_ok=True)
     if os.path.exists('token.pickle'):
         print("Older token configuration detected. Migrating to the new setup")
-        os.makedirs('tokens', exist_ok=True)
         new_name = f'token_{str(uuid.uuid4())}.pickle'
         os.rename('token.pickle', f'tokens/{new_name}')
 
