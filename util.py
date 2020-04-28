@@ -2,6 +2,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseDownload
+from colorama import Fore, Style
 import io, os, shutil, uuid, sys, json
 
 FOLDER = 'application/vnd.google-apps.folder'
@@ -44,7 +45,7 @@ def walk(service, top='root', by_name=False):
         if top['mimeType'] != FOLDER:
             raise ValueError('not a folder: %r' % top)
     stack = [((top['name'],), top)]
-    print(f"Indexing: {top['name']}\nFolder ID: {top['id']}\n")
+    print(f"Indexing: {Fore.YELLOW}{top['name']}{Style.RESET_ALL}\nFolder ID: {Fore.YELLOW}{top['id']}{Style.RESET_ALL}\n")
     while stack:
         path, top = stack.pop()
         dirs, files = is_file = [], []
@@ -61,11 +62,12 @@ def download(service, file, destination):
     fh = io.FileIO(os.path.join('buffer', rand_id), 'wb')
     downloader = MediaIoBaseDownload(fh, dlfile, chunksize=CHUNK_SIZE)
     done = False
-    while done is False:
+    rate_limit_count = 0
+    while done is False and rate_limit_count < 20:
         try:
             status, done = downloader.next_chunk()
         except Exception as ex:
-            print(f"User rate limit exceeded for {file['name']}")
+            rate_limit_count += 1
     fh.close()
     os.makedirs(destination, exist_ok=True)
     while True:
@@ -75,6 +77,7 @@ def download(service, file, destination):
         except PermissionError:
             # wait out the file write before attempting to move
             pass
+    return rate_limit_count
 
 def get_folder_id(link):
     # function to isolate folder id

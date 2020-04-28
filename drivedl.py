@@ -6,6 +6,7 @@ from colorama import Fore, Style
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/drive']
@@ -59,8 +60,8 @@ def get_service(tokenfile):
     return service
 
 def download_helper(args):
-    util.download(*args)
-    return args[1]['name']
+    rlc = util.download(*args)
+    return (args[1]['name'], rlc)
 
 if __name__ == '__main__':
     # Set path
@@ -112,6 +113,9 @@ if __name__ == '__main__':
             # Only use a single process for downloading 1 file
             util.download(service, dlfile, destination)
             sys.exit(0)
+        except HttpError:
+            print(f"{Fore.RED}File not found in account: {acc}{Style.RESET_ALL}")
+
     if service == None:
         # No accounts found with access to the drive link, exit gracefully
         print("No valid accounts with access to the file/folder. Exiting...")
@@ -121,7 +125,20 @@ if __name__ == '__main__':
         pbar = tqdm.tqdm(p.imap(download_helper, file_dest), total=len(file_dest))
         start = time.time()
         for i in pbar:
-            pbar.write(f'{Fore.GREEN}Downloaded:{Style.RESET_ALL} {Fore.BLUE}[Time: {str(int(time.time() - start))}s]{Style.RESET_ALL}\t{i}')
+            rlc = i[1]
+            if rlc == 0:
+                status = f'{Fore.GREEN}Downloaded:{Style.RESET_ALL} '
+            elif rlc < 20:
+                status = f'{Fore.YELLOW}Warning:{Style.RESET_ALL} '
+            else:
+                status = f'{Fore.RED}Error:{Style.RESET_ALL} '
+            main_str = f'{Fore.BLUE}[Time: {str(int(time.time() - start))}s]{Style.RESET_ALL}\t{i[0]}'
+            end_str = ''
+            if rlc > 0 and rlc < 20:
+                end_str += f' [Rate Limit Count: {rlc}] File saved'
+            elif rlc >= 20:
+                end_str += f' [Rate Limit Count: {rlc}] Partial file saved'
+            pbar.write(status + main_str + end_str)
         p.close()
         p.join()
     except ImportError:
