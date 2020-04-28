@@ -129,10 +129,11 @@ if __name__ == '__main__':
             if rlc == 0:
                 status = f'{Fore.GREEN}Downloaded:{Style.RESET_ALL} '
             elif rlc < 20:
-                status = f'{Fore.YELLOW}Warning:{Style.RESET_ALL} '
+                status = f'{Fore.YELLOW}Warning:   {Style.RESET_ALL} '
             else:
-                status = f'{Fore.RED}Error:{Style.RESET_ALL} '
-            main_str = f'{Fore.BLUE}[Time: {str(int(time.time() - start))}s]{Style.RESET_ALL}\t{i[0]}'
+                status = f'{Fore.RED}Error:     {Style.RESET_ALL} '
+            time_req = str(int(time.time() - start)) + 's'
+            main_str = f'{Fore.BLUE}[Time: {time_req.rjust(5)}]{Style.RESET_ALL} {i[0]}'
             end_str = ''
             if rlc > 0 and rlc < 20:
                 end_str += f' [Rate Limit Count: {rlc}] File saved'
