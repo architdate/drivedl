@@ -132,7 +132,6 @@ if __name__ == '__main__':
 
     if searches != []:
         print("\nEnter the number of the folder you want to download:")
-        print(searches[0])
         for i in range(len(searches)):
             print(f" {Fore.YELLOW}{str(i+1).ljust(3)}{Style.RESET_ALL}    {searches[i]['name']}")
         print(f"\n{Fore.GREEN}Index:{Style.RESET_ALL} ", end='')
