@@ -30,6 +30,16 @@ $ python drivedl.py --add
 ```
 You will have to authorize the scope of the application for the new account as well. The token will automatically be saved for future uses once permission is granted!
 
+## Searches:
+
+If you add `--search` to your command, you can search for the folder name using keywords instead of using the folder link or the folder ID. This searches through all drives in all registered accounts and gives a maximum of 10 results per drive. There is no cap on the global maximum results. The search is limited to folders and will not index loose files.
+
+An example of usage is as follows:
+```
+$ python drivedl.py "avengers endgame" --search "D:/Google Drive Downloads"
+```
+This also works with default path configurations (stated below).
+
 ## Default Path [Optional]
 
 ```bash
@@ -46,4 +56,4 @@ This lets you specify a default path for your download location.
 - [x] Color support
 - [x] Multi-Account support
 - [ ] Possible GUI?
-- [ ] Search functionality
+- [x] Search functionality

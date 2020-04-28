@@ -73,6 +73,7 @@ if __name__ == '__main__':
 
     accounts = get_accounts()
     service = None
+    search = False
 
     # File Listing
     if len(sys.argv) < 2:
@@ -85,6 +86,9 @@ if __name__ == '__main__':
             add_account()
             print("Account successfully added!")
             sys.exit(0)
+        if '--search' in sys.argv:
+            search = True
+            sys.argv.remove('--search')
         folderid = util.get_folder_id(sys.argv[1])
         if len(sys.argv) > 2:
             destination = sys.argv[2]
@@ -96,8 +100,8 @@ if __name__ == '__main__':
             destination = os.getcwd()
         
     file_dest = []
-    for acc in accounts:
-        service = get_service(acc)
+
+    def build_files():
         try:
             kwargs = {'top': folderid, 'by_name': False}
             for path, root, dirs, files in util.walk(service, **kwargs):
@@ -106,7 +110,7 @@ if __name__ == '__main__':
                     file_dest.append((service, f, dest))
             if file_dest != []:
                 # First valid account found, break to prevent further searches
-                break
+                return True
         except ValueError: # mimetype is not a folder
             dlfile = service.files().get(fileId=folderid, supportsAllDrives=True).execute()
             print(f"\nNot a valid folder ID. \nDownloading the file : {dlfile['name']}")
@@ -115,6 +119,29 @@ if __name__ == '__main__':
             sys.exit(0)
         except HttpError:
             print(f"{Fore.RED}File not found in account: {acc}{Style.RESET_ALL}")
+            return False
+
+    searches = []
+    for acc in accounts:
+        service = get_service(acc)
+        if not search:
+            valid = build_files()
+            if valid: break
+        else:
+            searches += util.querysearch(service, folderid, 'rand', True)
+
+    if searches != []:
+        print("\nEnter the number of the folder you want to download:")
+        print(searches[0])
+        for i in range(len(searches)):
+            print(f" {Fore.YELLOW}{str(i+1).ljust(3)}{Style.RESET_ALL}    {searches[i]['name']}")
+        print(f"\n{Fore.GREEN}Index:{Style.RESET_ALL} ", end='')
+        index = int(input()) - 1
+        if index + 1 > len(searches):
+            print(f"{Fore.RED}Invalid Index. Exiting.{Style.RESET_ALL}")
+            sys.exit(1)
+        folderid = searches[index]['id']
+        build_files()
 
     if service == None:
         # No accounts found with access to the drive link, exit gracefully
@@ -122,7 +149,7 @@ if __name__ == '__main__':
         sys.exit(1)
     try:
         p = Pool(PROCESS_COUNT)
-        pbar = tqdm.tqdm(p.imap(download_helper, file_dest), total=len(file_dest))
+        pbar = tqdm.tqdm(p.imap_unordered(download_helper, file_dest), total=len(file_dest))
         start = time.time()
         for i in pbar:
             rlc = i[1]

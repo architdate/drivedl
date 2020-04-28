@@ -55,6 +55,31 @@ def walk(service, top='root', by_name=False):
         if dirs:
             stack.extend((path + (d['name'],), d) for d in reversed(dirs))
 
+def querysearch(service, name=None, drive_id=None, is_folder=None, parent=None, order_by='folder,name,createdTime'):
+    q = []
+    items = []
+    if name is not None:
+        q.append("name contains '%s'" % name.replace("'", "\\'"))
+    if is_folder is not None:
+        q.append("mimeType %s '%s'" % ('=' if is_folder else '!=', FOLDER))
+    if parent is not None:
+        q.append("'%s' in parents" % parent.replace("'", "\\'"))
+    if drive_id == None:
+        params = {'pageToken': None, 'orderBy': order_by, 'includeItemsFromAllDrives': True, 'supportsAllDrives': True}
+    else:
+        params = {'pageToken': None, 'orderBy': order_by, 'includeItemsFromAllDrives': True, 'supportsAllDrives': True, 'corpora': 'allDrives'}
+    if q:
+        params['q'] = ' and '.join(q)
+    while len(items) < 10:
+        response = service.files().list(**params).execute()
+        for f in response['files']:
+            items.append(f)
+        try:
+            params['pageToken'] = response['nextPageToken']
+        except KeyError:
+            break
+    return items
+
 def download(service, file, destination):
     # file is a dictionary with file id as well as name
     dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True)
