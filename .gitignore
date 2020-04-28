@@ -1,6 +1,7 @@
 buffer/*
 !buffer/README.md
 __pycache__/
+tokens/
 
 credentials.json
 config.json
