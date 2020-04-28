@@ -1,5 +1,5 @@
 from __future__ import print_function
-import pickle, util, sys, tqdm, time, json
+import pickle, util, sys, tqdm, time, json, uuid
 import os.path
 from multiprocessing import Pool
 from colorama import Fore, Style
@@ -11,7 +11,28 @@ from google.auth.transport.requests import Request
 SCOPES = ['https://www.googleapis.com/auth/drive']
 PROCESS_COUNT = 5
 
-def get_service():
+def add_account():
+    tokenfile = f'token_{str(uuid.uuid4())}.pickle'
+    os.makedirs('tokens', exist_ok=True)
+    flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+    creds = flow.run_local_server(port=0)
+    # Save the credentials for the next run
+    with open(f'tokens/{tokenfile}', 'wb') as token:
+        pickle.dump(creds, token)
+
+def migrate():
+    # Migrate token.pickle file to tokens folder
+    if os.path.exists('token.pickle'):
+        print("Older token configuration detected. Migrating to the new setup")
+        os.makedirs('tokens', exist_ok=True)
+        new_name = f'token_{str(uuid.uuid4())}.pickle'
+        os.rename('token.pickle', f'tokens/{new_name}')
+
+def get_accounts():
+    return [x for x in os.listdir('tokens') if x.endswith('.pickle')]
+
+def get_service(tokenfile):
     """Shows basic usage of the Drive v3 API.
     Prints the names and ids of the first 10 files the user has access to.
     """
@@ -19,8 +40,8 @@ def get_service():
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
+    if os.path.exists(f'tokens/{tokenfile}'):
+        with open(f'tokens/{tokenfile}', 'rb') as token:
             creds = pickle.load(token)
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
@@ -31,7 +52,7 @@ def get_service():
                 'credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open('token.pickle', 'wb') as token:
+        with open(f'tokens/{tokenfile}', 'wb') as token:
             pickle.dump(creds, token)
 
     service = build('drive', 'v3', credentials=creds)
@@ -47,7 +68,10 @@ if __name__ == '__main__':
     dname = os.path.dirname(abspath)
     os.chdir(dname)
 
-    service = get_service()
+    migrate()
+
+    accounts = get_accounts()
+    service = None
 
     # File Listing
     if len(sys.argv) < 2:
@@ -55,6 +79,10 @@ if __name__ == '__main__':
     else:
         if sys.argv[1] == '--path':
             util.save_default_path(sys.argv[2])
+            sys.exit(0)
+        if sys.argv[1] == '--add':
+            add_account()
+            print("Account successfully added!")
             sys.exit(0)
         folderid = util.get_folder_id(sys.argv[1])
         if len(sys.argv) > 2:
@@ -67,18 +95,27 @@ if __name__ == '__main__':
             destination = os.getcwd()
         
     file_dest = []
-    try:
-        for kwargs in [{'top': folderid, 'by_name': False}]:
+    for acc in accounts:
+        service = get_service(acc)
+        try:
+            kwargs = {'top': folderid, 'by_name': False}
             for path, root, dirs, files in util.walk(service, **kwargs):
                 for f in files:
                     dest = os.path.join(destination, os.path.join(*path))
                     file_dest.append((service, f, dest))
-    except ValueError: # mimetype is not a folder
-        dlfile = service.files().get(fileId=folderid, supportsAllDrives=True).execute()
-        print(f"\nNot a valid folder ID. \nDownloading the file : {dlfile['name']}")
-        # Only use a single process for downloading 1 file
-        util.download(service, dlfile, destination)
-        sys.exit(0)
+            if file_dest != []:
+                # First valid account found, break to prevent further searches
+                break
+        except ValueError: # mimetype is not a folder
+            dlfile = service.files().get(fileId=folderid, supportsAllDrives=True).execute()
+            print(f"\nNot a valid folder ID. \nDownloading the file : {dlfile['name']}")
+            # Only use a single process for downloading 1 file
+            util.download(service, dlfile, destination)
+            sys.exit(0)
+    if service == None:
+        # No accounts found with access to the drive link, exit gracefully
+        print("No valid accounts with access to the file/folder. Exiting...")
+        sys.exit(1)
     try:
         p = Pool(PROCESS_COUNT)
         pbar = tqdm.tqdm(p.imap(download_helper, file_dest), total=len(file_dest))

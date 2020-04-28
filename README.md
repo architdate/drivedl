@@ -18,10 +18,17 @@ $ pip install -r requirements.txt
 ```bash
 $ python drivedl.py <folder_id / file_id> <path_to_save>
 ```
-
 It is as straightforward as that!
 
 Note that on the first run, you will have to authorize the scope of the application. This is pretty straightforward as well!
+
+## Add extra accounts:
+
+Run the following command to add a new account. (Adding an account means that it will also be searched when using drivedl)
+```bash
+$ python drivedl.py --add
+```
+You will have to authorize the scope of the application for the new account as well. The token will automatically be saved for future uses once permission is granted!
 
 ## Default Path [Optional]
 
@@ -37,5 +44,6 @@ This lets you specify a default path for your download location.
 - [x] Add default path
 - [x] Single file download support
 - [x] Color support
+- [x] Multi-Account support
 - [ ] Possible GUI?
 - [ ] Search functionality
