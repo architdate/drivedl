@@ -3,7 +3,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseDownload
 from colorama import Fore, Style
-import io, os, shutil, uuid, sys, json
+import io, os, shutil, uuid, sys, json, time
 
 FOLDER = 'application/vnd.google-apps.folder'
 CHUNK_SIZE = 20 * 1024 * 1024 # 20MB chunks
@@ -126,3 +126,19 @@ def save_default_path(path):
         config['default_path'] = path
     with open('config.json', 'w') as f:
         f.write(json.dumps(config, indent= 4))
+
+def get_download_status(rlc, start):
+    if rlc == 0:
+        status = f'{Fore.GREEN}Downloaded:{Style.RESET_ALL} '
+    elif rlc < 20:
+        status = f'{Fore.YELLOW}Warning:   {Style.RESET_ALL} '
+    else:
+        status = f'{Fore.RED}Error:     {Style.RESET_ALL} '
+    time_req = str(int(time.time() - start)) + 's'
+    main_str = f'{Fore.BLUE}[Time: {time_req.rjust(5)}]{Style.RESET_ALL}'
+    end_str = ''
+    if rlc > 0 and rlc < 20:
+        end_str += f' [Rate Limit Count: {rlc}] File saved'
+    elif rlc >= 20:
+        end_str += f' [Rate Limit Count: {rlc}] Partial file saved'
+    return (status, main_str, end_str)

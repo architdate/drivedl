@@ -65,12 +65,9 @@ def download_helper(args):
 
 if __name__ == '__main__':
     # Set path
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
     migrate()
-
     accounts = get_accounts()
     service = None
     search = False
@@ -152,20 +149,8 @@ if __name__ == '__main__':
         start = time.time()
         for i in pbar:
             rlc = i[1]
-            if rlc == 0:
-                status = f'{Fore.GREEN}Downloaded:{Style.RESET_ALL} '
-            elif rlc < 20:
-                status = f'{Fore.YELLOW}Warning:   {Style.RESET_ALL} '
-            else:
-                status = f'{Fore.RED}Error:     {Style.RESET_ALL} '
-            time_req = str(int(time.time() - start)) + 's'
-            main_str = f'{Fore.BLUE}[Time: {time_req.rjust(5)}]{Style.RESET_ALL} {i[0]}'
-            end_str = ''
-            if rlc > 0 and rlc < 20:
-                end_str += f' [Rate Limit Count: {rlc}] File saved'
-            elif rlc >= 20:
-                end_str += f' [Rate Limit Count: {rlc}] Partial file saved'
-            pbar.write(status + main_str + end_str)
+            status, main_str, end_str = util.get_download_status(rlc, start)
+            pbar.write(status + main_str + f' {i[0]}' + end_str)
         p.close()
         p.join()
     except ImportError:
