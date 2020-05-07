@@ -94,7 +94,7 @@ def download(service, file, destination):
         except Exception as ex:
             rate_limit_count += 1
     fh.close()
-    os.makedirs("".join([c for c in destination if c.isalpha() or c.isdigit() or c==' ']).rstrip(), exist_ok=True)
+    os.makedirs(destination, exist_ok=True)
     while True:
         try:
             shutil.move(os.path.join('buffer', rand_id), os.path.join(destination, file['name']))

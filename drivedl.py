@@ -102,6 +102,7 @@ if __name__ == '__main__':
         try:
             kwargs = {'top': folderid, 'by_name': False}
             for path, root, dirs, files in util.walk(service, **kwargs):
+                path = ["".join([c for c in dirname if c.isalpha() or c.isdigit() or c==' ']).rstrip() for dirname in path]
                 for f in files:
                     dest = os.path.join(destination, os.path.join(*path))
                     file_dest.append((service, f, dest))
