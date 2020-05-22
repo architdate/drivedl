@@ -22,6 +22,11 @@ It is as straightforward as that!
 
 Note that on the first run, you will have to authorize the scope of the application. This is pretty straightforward as well!
 
+## Skipping existing files:
+
+Adding an argument `--skip` to your command will skip existing files and not redownload them.
+- By default the behaviour is to download everything without skipping.
+
 ## Add extra accounts:
 
 Run the following command to add a new account. (Adding an account means that it will also be searched when using drivedl)
@@ -55,5 +60,6 @@ This lets you specify a default path for your download location.
 - [x] Single file download support
 - [x] Color support
 - [x] Multi-Account support
-- [ ] Possible GUI?
+- [x] Skip existing files
 - [x] Search functionality
+- [ ] Functionality to download docs

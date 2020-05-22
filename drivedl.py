@@ -71,6 +71,7 @@ if __name__ == '__main__':
     accounts = get_accounts()
     service = None
     search = False
+    skip = False
 
     # File Listing
     if len(sys.argv) < 2:
@@ -86,6 +87,9 @@ if __name__ == '__main__':
         if '--search' in sys.argv:
             search = True
             sys.argv.remove('--search')
+        if '--skip' in sys.argv:
+            skip = True
+            sys.argv.remove('--skip')
         folderid = util.get_folder_id(sys.argv[1])
         if len(sys.argv) > 2:
             destination = sys.argv[2]
@@ -105,7 +109,7 @@ if __name__ == '__main__':
                 path = ["".join([c for c in dirname if c.isalpha() or c.isdigit() or c==' ']).rstrip() for dirname in path]
                 for f in files:
                     dest = os.path.join(destination, os.path.join(*path))
-                    file_dest.append((service, f, dest))
+                    file_dest.append((service, f, dest, skip))
             if file_dest != []:
                 # First valid account found, break to prevent further searches
                 return True
@@ -113,7 +117,7 @@ if __name__ == '__main__':
             dlfile = service.files().get(fileId=folderid, supportsAllDrives=True).execute()
             print(f"\nNot a valid folder ID. \nDownloading the file : {dlfile['name']}")
             # Only use a single process for downloading 1 file
-            util.download(service, dlfile, destination)
+            util.download(service, dlfile, destination, skip)
             sys.exit(0)
         except HttpError:
             print(f"{Fore.RED}File not found in account: {acc}{Style.RESET_ALL}")

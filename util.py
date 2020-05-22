@@ -80,8 +80,10 @@ def querysearch(service, name=None, drive_id=None, is_folder=None, parent=None, 
             break
     return items
 
-def download(service, file, destination):
+def download(service, file, destination, skip=False):
     # file is a dictionary with file id as well as name
+    if skip and os.path.exists(os.path.join(destination, file['name'])):
+        return -1
     dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True)
     rand_id = str(uuid.uuid4())
     fh = io.FileIO(os.path.join('buffer', rand_id), 'wb')
@@ -128,7 +130,9 @@ def save_default_path(path):
         f.write(json.dumps(config, indent= 4))
 
 def get_download_status(rlc, start):
-    if rlc == 0:
+    if rlc == -1: # skipped file
+        status = f'{Fore.CYAN}Skipped:   {Style.RESET_ALL} '
+    elif rlc == 0:
         status = f'{Fore.GREEN}Downloaded:{Style.RESET_ALL} '
     elif rlc < 20:
         status = f'{Fore.YELLOW}Warning:   {Style.RESET_ALL} '
