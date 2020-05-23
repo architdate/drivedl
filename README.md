@@ -62,4 +62,4 @@ This lets you specify a default path for your download location.
 - [x] Multi-Account support
 - [x] Skip existing files
 - [x] Search functionality
-- [ ] Functionality to download docs
+- [x] Functionality to download docs
