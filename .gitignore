@@ -2,6 +2,8 @@ buffer/*
 !buffer/README.md
 __pycache__/
 tokens/
+drivedl.egg-info/
+dist/
 
 credentials.json
 config.json
