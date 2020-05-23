@@ -1,8 +1,17 @@
+[![PyPI version](https://badge.fury.io/py/drivedl.svg)](https://badge.fury.io/py/drivedl)
+
 # drivedl
 
 This is a CLI tool for concurrent downloads of directories in any drive type. (My Drive, Team Drive or Shared with me)
 
 The tool requires the `'https://www.googleapis.com/auth/drive'` scope as of now. This scope can be tightened since all that the script needs is permission to traverse and download data from the drives. Feel free to PR a different scope if it is more relevant
+
+## Installation:
+
+- Install the binary through PyPI using the following command:
+```bash
+$ pip install drivedl
+```
 
 ## Pre-requisites:
 
