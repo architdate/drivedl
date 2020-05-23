@@ -84,7 +84,19 @@ def download(service, file, destination, skip=False):
     # file is a dictionary with file id as well as name
     if skip and os.path.exists(os.path.join(destination, file['name'])):
         return -1
-    dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True)
+    mimeType = file['mimeType']
+    if "application/vnd.google-apps" in mimeType:
+        if "form" in mimeType: return -1
+        elif "document" in mimeType:
+            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        elif "spreadsheet" in mimeType:
+            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        elif "presentation" in mimeType:
+            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.presentationml.presentation')
+        else:
+            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/pdf')
+    else:
+        dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True)
     rand_id = str(uuid.uuid4())
     fh = io.FileIO(os.path.join('buffer', rand_id), 'wb')
     downloader = MediaIoBaseDownload(fh, dlfile, chunksize=CHUNK_SIZE)
