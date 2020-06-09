@@ -7,7 +7,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="drivedl",
-    version="1.0",
+    version="1.1",
     description="Download files from Google Drive (inclusive of teamdrives, shared with me and my drive) concurrently.",
     long_description=readme,
     long_description_content_type="text/markdown",

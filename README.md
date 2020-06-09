@@ -36,6 +36,15 @@ Note that on the first run, you will have to authorize the scope of the applicat
 Adding an argument `--skip` to your command will skip existing files and not redownload them.
 - By default the behaviour is to download everything without skipping.
 
+## Assigning extra processes:
+
+Adding an argument `--proc` followed by an integer of processes to assign the application will spawn the specified processes to do the download
+- Example: `--proc 10` for 10 processes
+
+## Downloading using process map instead of an iterated map:
+
+Adding an argument `--noiter` tells the program to download via `process.map` instead of `process.imap_unordered`. This lets you download faster with the drawback of no process bar being shown because of no iterable item. Recommended to be used if speed is of essence.
+
 ## Add extra accounts:
 
 Run the following command to add a new account. (Adding an account means that it will also be searched when using drivedl)
@@ -61,6 +70,10 @@ $ python drivedl.py --path <default_path>
 ```
 
 This lets you specify a default path for your download location.
+
+## Debugging:
+
+Adding `--debug` writes a log file once the entire task is completed so that any issues can be documented. This is helpful while making GitHub issues to pinpoint issues with the script.
 
 ## TODO:
 

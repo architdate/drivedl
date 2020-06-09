@@ -63,6 +63,10 @@ def download_helper(args):
     rlc = util.download(*args)
     return (args[1]['name'], rlc)
 
+def mapped_dl(args):
+    rlc = util.download(*args, noiter=True)
+    return (args[1]['name'], rlc)
+
 def main(console_call=True):
     # Set path
     if console_call:
@@ -78,10 +82,12 @@ def main(console_call=True):
     service = None
     search = False
     skip = False
+    noiter = False
 
     # File Listing
     if len(sys.argv) < 2:
         print("Usage: tdlist <folderid> <destination>")
+        sys.exit(-1)
     else:
         if sys.argv[1] == '--path':
             util.save_default_path(sys.argv[2])
@@ -96,6 +102,17 @@ def main(console_call=True):
         if '--skip' in sys.argv:
             skip = True
             sys.argv.remove('--skip')
+        if '--debug' in sys.argv:
+            util.DEBUG = True
+            sys.argv.remove('--debug')
+        if '--noiter' in sys.argv:
+            noiter = True
+            sys.argv.remove('--noiter')
+        if '--proc' in sys.argv:
+            index = sys.argv.index('--proc')
+            PROCESS_COUNT = int(sys.argv[index + 1])
+            sys.argv.pop(index + 1)
+            sys.argv.pop(index)
         folderid = util.get_folder_id(sys.argv[1])
         if len(sys.argv) > 2:
             destination = sys.argv[2]
@@ -112,7 +129,7 @@ def main(console_call=True):
         try:
             kwargs = {'top': folderid, 'by_name': False}
             for path, root, dirs, files in util.walk(service, **kwargs):
-                path = ["".join([c for c in dirname if c.isalpha() or c.isdigit() or c==' ']).rstrip() for dirname in path]
+                path = ["".join([c for c in dirname if c.isalpha() or c.isdigit() or c in [' ', '-', '_', '.', '(', ')', '[', ']']]).rstrip() for dirname in path]
                 for f in files:
                     dest = os.path.join(destination, os.path.join(*path))
                     file_dest.append((service, f, dest, skip))
@@ -156,14 +173,19 @@ def main(console_call=True):
         sys.exit(1)
     try:
         p = Pool(PROCESS_COUNT)
-        pbar = tqdm.tqdm(p.imap_unordered(download_helper, file_dest), total=len(file_dest))
-        start = time.time()
-        for i in pbar:
-            rlc = i[1]
-            status, main_str, end_str = util.get_download_status(rlc, start)
-            pbar.write(status + main_str + f' {i[0]}' + end_str)
-        p.close()
-        p.join()
+        if noiter:
+            p.map(mapped_dl, file_dest)
+        else:
+            pbar = tqdm.tqdm(p.imap_unordered(download_helper, file_dest), total=len(file_dest))
+            start = time.time()
+            for i in pbar:
+                rlc = i[1]
+                status, main_str, end_str = util.get_download_status(rlc, start)
+                pbar.write(status + main_str + f' {i[0]}' + end_str)
+            p.close()
+            p.join()
+        if util.DEBUG:
+            util.debug_write(f'debug_{int(time.time())}.log')
     except ImportError:
         # Multiprocessing is not supported (example: Android Devices)
         for fd in file_dest:

@@ -6,7 +6,15 @@ from colorama import Fore, Style
 import io, os, shutil, uuid, sys, json, time
 
 FOLDER = 'application/vnd.google-apps.folder'
+DEBUG = False
 CHUNK_SIZE = 20 * 1024 * 1024 # 20MB chunks
+
+DEBUG_STATEMENTS = [] # cache all debug statements
+
+def debug_write(logfile):
+    with open(logfile, 'w') as f:
+        f.write('\n'.join(DEBUG_STATEMENTS))
+    print(f"{Fore.YELLOW}DEBUG LOG SAVED HERE:{Style.RESET_ALL} {logfile}")
 
 def list_td(service):
     # Call the Drive v3 API
@@ -80,7 +88,7 @@ def querysearch(service, name=None, drive_id=None, is_folder=None, parent=None, 
             break
     return items
 
-def download(service, file, destination, skip=False):
+def download(service, file, destination, skip=False, noiter=False):
     # file is a dictionary with file id as well as name
     if skip and os.path.exists(os.path.join(destination, file['name'])):
         return -1
@@ -101,14 +109,17 @@ def download(service, file, destination, skip=False):
     os.makedirs('buffer', exist_ok=True)
     fh = io.FileIO(os.path.join('buffer', rand_id), 'wb')
     downloader = MediaIoBaseDownload(fh, dlfile, chunksize=CHUNK_SIZE)
+    if noiter: print(f"{Fore.GREEN}Downloading{Style.RESET_ALL} {file['name']} ...")
     done = False
     rate_limit_count = 0
     while done is False and rate_limit_count < 20:
         try:
             status, done = downloader.next_chunk()
         except Exception as ex:
+            DEBUG_STATEMENTS.append(f'File Name: {file["name"]}, File ID: {file["id"]}, Exception: {ex}')
             rate_limit_count += 1
     fh.close()
+    if noiter and rate_limit_count == 20: print(f"{Fore.RED}Error      {Style.RESET_ALL} {file['name']} ...")
     os.makedirs(destination, exist_ok=True)
     while True:
         try:
