@@ -4,6 +4,7 @@ __pycache__/
 tokens/
 drivedl.egg-info/
 dist/
+build/
 
 credentials.json
 config.json
