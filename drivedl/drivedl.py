@@ -113,6 +113,8 @@ def main(console_call=True):
             PROCESS_COUNT = int(sys.argv[index + 1])
             sys.argv.pop(index + 1)
             sys.argv.pop(index)
+        else:
+            PROCESS_COUNT = 5
         folderid = util.get_folder_id(sys.argv[1])
         if len(sys.argv) > 2:
             destination = sys.argv[2]
