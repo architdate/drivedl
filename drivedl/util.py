@@ -104,7 +104,7 @@ def download(service, file, destination, skip=False, noiter=False):
         else:
             dlfile = service.files().export_media(fileId=file['id'], mimeType='application/pdf')
     else:
-        dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True)
+        dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True, acknowledgeAbuse=True)
     rand_id = str(uuid.uuid4())
     os.makedirs('buffer', exist_ok=True)
     fh = io.FileIO(os.path.join('buffer', rand_id), 'wb')
