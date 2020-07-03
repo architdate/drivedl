@@ -86,7 +86,7 @@ def main(console_call=True):
 
     # File Listing
     if len(sys.argv) < 2:
-        print("Usage: tdlist <folderid> <destination>")
+        print(f"Usage: {sys.argv[0]} <folderid> <destination>")
         sys.exit(-1)
     else:
         if sys.argv[1] == '--path':
