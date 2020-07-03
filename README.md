@@ -16,16 +16,6 @@ $ pip install drivedl
 - Enter `drivedl --add` in the commandline after following the previous step to add an account by signing in. (You will be redirected to a browser sign-in page)
 - Congrats! You have successfully setup drivedl! Read the usage instructions for how to then use the package
 
-## Testing bleeding edge commits:
-
-- Download `credentials.json` for a Desktop drive application. Instructions on how to get that can be found [here](https://developers.google.com/drive/api/v3/quickstart/python) (refer to Step 1)
-- Save the `credentials.json` file in the same directory as `drivedl.py`
-- Install the Drive API for python by running the following command:
-```bash
-$ pip install -r requirements.txt
-```
-- Usage instructions would involve invoking the script via `$ python drivedl.py`
-
 ## Usage:
 
 ```bash
@@ -78,6 +68,16 @@ This lets you specify a default path for your download location. Once a default 
 ## Debugging:
 
 Adding `--debug` writes a log file once the entire task is completed so that any issues can be documented. This is helpful while making GitHub issues to pinpoint issues with the script.
+
+## Testing bleeding edge commits:
+
+- Download `credentials.json` for a Desktop drive application. Instructions on how to get that can be found [here](https://developers.google.com/drive/api/v3/quickstart/python) (refer to Step 1)
+- Save the `credentials.json` file in the same directory as `drivedl.py`
+- Install the Drive API for python by running the following command:
+```bash
+$ pip install -r requirements.txt
+```
+- Usage instructions would involve invoking the script via `$ python drivedl.py`
 
 ## TODO:
 
