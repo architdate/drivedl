@@ -30,6 +30,12 @@ Note that on the first run, you will have to authorize the scope of the applicat
 Adding an argument `--skip` to your command will skip existing files and not redownload them.
 - By default the behaviour is to download everything without skipping.
 
+## File Abuse
+
+Adding an argument `--abuse` allows for downloading files which have been marked as "abused" from google.
+This acknowledges that you will download a file which google has marked that it could be malware or spam.
+An example error can be found on [this](https://github.com/prasmussen/gdrive/issues/182).
+
 ## Assigning extra processes:
 
 Adding an argument `--proc` followed by an integer of processes to assign the application will spawn the specified processes to do the download. Default process count is 5 processes
