@@ -88,11 +88,25 @@ def querysearch(service, name=None, drive_id=None, is_folder=None, parent=None, 
             break
     return items
 
-def download(service, file, destination, skip=False, noiter=False):
+def download(service, file, destination, skip=False, abuse=False, noiter=False):
+    # add file extension if we don't have one
+    mimeType = file['mimeType']
+    if "application/vnd.google-apps" in mimeType:
+        if "form" in mimeType: return -1
+        elif "document" in mimeType:
+            ext_file = '.docx'
+        elif "spreadsheet" in mimeType:
+            ext_file = '.xlsx'
+        elif "presentation" in mimeType:
+            ext_file = '.pptx'
+        else:
+            ext_file = '.pdf'
+        root, ext = os.path.splitext(file['name'])
+        if not ext:
+            file['name'] = file['name'] + ext_file
     # file is a dictionary with file id as well as name
     if skip and os.path.exists(os.path.join(destination, file['name'])):
         return -1
-    mimeType = file['mimeType']
     if "application/vnd.google-apps" in mimeType:
         if "form" in mimeType: return -1
         elif "document" in mimeType:
@@ -104,7 +118,7 @@ def download(service, file, destination, skip=False, noiter=False):
         else:
             dlfile = service.files().export_media(fileId=file['id'], mimeType='application/pdf')
     else:
-        dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True, acknowledgeAbuse=True)
+        dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True, acknowledgeAbuse=abuse)
     rand_id = str(uuid.uuid4())
     os.makedirs('buffer', exist_ok=True)
     fh = io.FileIO(os.path.join('buffer', rand_id), 'wb')
@@ -116,6 +130,10 @@ def download(service, file, destination, skip=False, noiter=False):
         try:
             status, done = downloader.next_chunk()
         except Exception as ex:
+            if "abuse" in str(ex).lower():
+                if not noiter: print()
+                print(f"{Fore.RED}Abuse error for file{Style.RESET_ALL} {file['name']} ...")
+                rate_limit_count = 21
             DEBUG_STATEMENTS.append(f'File Name: {file["name"]}, File ID: {file["id"]}, Exception: {ex}')
             rate_limit_count += 1
     fh.close()

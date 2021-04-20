@@ -83,6 +83,7 @@ def main(console_call=True):
     search = False
     skip = False
     noiter = False
+    abuse = False
 
     # File Listing
     if len(sys.argv) < 2:
@@ -102,6 +103,9 @@ def main(console_call=True):
         if '--skip' in sys.argv:
             skip = True
             sys.argv.remove('--skip')
+        if '--abuse' in sys.argv:
+            abuse = True
+            sys.argv.remove('--abuse')
         if '--debug' in sys.argv:
             util.DEBUG = True
             sys.argv.remove('--debug')
@@ -134,7 +138,8 @@ def main(console_call=True):
                 path = ["".join([c for c in dirname if c.isalpha() or c.isdigit() or c in [' ', '-', '_', '.', '(', ')', '[', ']']]).rstrip() for dirname in path]
                 for f in files:
                     dest = os.path.join(destination, os.path.join(*path))
-                    file_dest.append((service, f, dest, skip))
+                    f['name'] = "".join([c for c in f['name'] if c.isalpha() or c.isdigit() or c in [' ', '-', '_', '.', '(', ')', '[', ']']]).rstrip()
+                    file_dest.append((service, f, dest, skip, abuse))
             if file_dest != []:
                 # First valid account found, break to prevent further searches
                 return True
@@ -142,7 +147,7 @@ def main(console_call=True):
             dlfile = service.files().get(fileId=folderid, supportsAllDrives=True).execute()
             print(f"\nNot a valid folder ID. \nDownloading the file : {dlfile['name']}")
             # Only use a single process for downloading 1 file
-            util.download(service, dlfile, destination, skip)
+            util.download(service, dlfile, destination, skip, abuse)
             sys.exit(0)
         except HttpError:
             print(f"{Fore.RED}File not found in account: {acc}{Style.RESET_ALL}")
@@ -171,7 +176,8 @@ def main(console_call=True):
 
     if service == None:
         # No accounts found with access to the drive link, exit gracefully
-        print("No valid accounts with access to the file/folder. Exiting...")
+        print("No valid accounts with access to the file/folder.")
+        print("Have you run the drivedl --add command? Exiting...")
         sys.exit(1)
     try:
         p = Pool(PROCESS_COUNT)

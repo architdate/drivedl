@@ -5,6 +5,8 @@ tokens/
 drivedl.egg-info/
 dist/
 build/
+venv/
+.idea/
 
 credentials.json
 config.json
