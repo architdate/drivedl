@@ -88,6 +88,21 @@ def querysearch(service, name=None, drive_id=None, is_folder=None, parent=None, 
             break
     return items
 
+
+def get_dfile(service, file, mimeType, abuse):
+    if "application/vnd.google-apps" in mimeType:
+        if "document" in mimeType:
+            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        elif "spreadsheet" in mimeType:
+            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        elif "presentation" in mimeType:
+            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.presentationml.presentation')
+        else:
+            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/pdf')
+    else:
+        dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True, acknowledgeAbuse=abuse)
+    return dlfile
+
 def download(service, file, destination, skip=False, abuse=False, noiter=False):
     # add file extension if we don't have one
     mimeType = file['mimeType']
@@ -107,18 +122,7 @@ def download(service, file, destination, skip=False, abuse=False, noiter=False):
     # file is a dictionary with file id as well as name
     if skip and os.path.exists(os.path.join(destination, file['name'])):
         return -1
-    if "application/vnd.google-apps" in mimeType:
-        if "form" in mimeType: return -1
-        elif "document" in mimeType:
-            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-        elif "spreadsheet" in mimeType:
-            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        elif "presentation" in mimeType:
-            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.presentationml.presentation')
-        else:
-            dlfile = service.files().export_media(fileId=file['id'], mimeType='application/pdf')
-    else:
-        dlfile = service.files().get_media(fileId=file['id'], supportsAllDrives=True, acknowledgeAbuse=abuse)
+    dlfile = get_dfile(service, file, mimeType, abuse)
     rand_id = str(uuid.uuid4())
     os.makedirs('buffer', exist_ok=True)
     fh = io.FileIO(os.path.join('buffer', rand_id), 'wb')
@@ -130,10 +134,16 @@ def download(service, file, destination, skip=False, abuse=False, noiter=False):
         try:
             status, done = downloader.next_chunk()
         except Exception as ex:
+            # if we fail due to the abuse flag re-create the downloader
+            # this will allow us to do a "soft" retry with either abuse enabled/disabled
             if "abuse" in str(ex).lower():
                 if not noiter: print()
-                print(f"{Fore.RED}Abuse error for file{Style.RESET_ALL} {file['name']} ...")
-                rate_limit_count = 21
+                abuse_str = "abuse flag active" if abuse else "abuse flag disabled"
+                print(f'{Fore.RED}Abuse error for file ({abuse_str}), {file["name"]}, File ID: {file["id"]}{Style.RESET_ALL}')
+                abuse = not abuse
+                dlfile = get_dfile(service, file, mimeType, abuse)
+                downloader = MediaIoBaseDownload(fh, dlfile, chunksize=CHUNK_SIZE)
+            # debug and increment retry count
             DEBUG_STATEMENTS.append(f'File Name: {file["name"]}, File ID: {file["id"]}, Exception: {ex}')
             rate_limit_count += 1
     fh.close()
