@@ -89,7 +89,7 @@ def querysearch(service, name=None, drive_id=None, is_folder=None, parent=None, 
     return items
 
 
-def get_dfile(service, file, mimeType, abuse):
+def get_dlfile(service, file, mimeType, abuse):
     if "application/vnd.google-apps" in mimeType:
         if "document" in mimeType:
             dlfile = service.files().export_media(fileId=file['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
@@ -122,7 +122,7 @@ def download(service, file, destination, skip=False, abuse=False, noiter=False):
     # file is a dictionary with file id as well as name
     if skip and os.path.exists(os.path.join(destination, file['name'])):
         return -1
-    dlfile = get_dfile(service, file, mimeType, abuse)
+    dlfile = get_dlfile(service, file, mimeType, abuse)
     rand_id = str(uuid.uuid4())
     os.makedirs('buffer', exist_ok=True)
     fh = io.FileIO(os.path.join('buffer', rand_id), 'wb')
@@ -139,9 +139,9 @@ def download(service, file, destination, skip=False, abuse=False, noiter=False):
             if "abuse" in str(ex).lower():
                 if not noiter: print()
                 abuse_str = "abuse flag active" if abuse else "abuse flag disabled"
-                print(f'{Fore.RED}Abuse error for file ({abuse_str}), {file["name"]}, File ID: {file["id"]}{Style.RESET_ALL}')
+                print(f'{Fore.RED}Got abuse error ({abuse_str}), {file["name"]}, File ID: {file["id"]}{Style.RESET_ALL}')
                 abuse = not abuse
-                dlfile = get_dfile(service, file, mimeType, abuse)
+                dlfile = get_dlfile(service, file, mimeType, abuse)
                 downloader = MediaIoBaseDownload(fh, dlfile, chunksize=CHUNK_SIZE)
             # debug and increment retry count
             DEBUG_STATEMENTS.append(f'File Name: {file["name"]}, File ID: {file["id"]}, Exception: {ex}')
